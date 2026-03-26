@@ -29,7 +29,6 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
-        # Use string and encode to UTF-8 instead of bytes literal
         html_content = """
         <!DOCTYPE html>
         <html>
@@ -92,7 +91,7 @@ web_thread.start()
 
 # ==================== CONFIGURATION ====================
 
-# Get bot token from environment variable - supports both names for compatibility
+# Get bot token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN') or os.getenv('TOKEN')
 
 if not BOT_TOKEN:
@@ -977,8 +976,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         async with session_lock:
             session["index"] += 1
         
+        # Send next question without waiting for message deletion
         await send_question(update, context)
         
+        # Delete explanation after delay
         asyncio.create_task(delete_message_after_delay(context, update.effective_chat.id, msg.message_id, 1))
 
 async def delete_message_after_delay(context, chat_id, message_id, delay):
@@ -1049,54 +1050,46 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ==================== MAIN ====================
 
-async def main():
-    """Main function for Render deployment"""
-    # Use BOT_TOKEN (defined earlier) not TOKEN
-    app = Application.builder() \
-        .token(BOT_TOKEN) \
-        .concurrent_updates(True) \
-        .build()
-    
-    # Add handlers
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("stats", stats_command))
-    app.add_handler(CommandHandler("ping", ping))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CallbackQueryHandler(handle_callback))
-    app.add_error_handler(error_handler)
-    
-    logger.info("=" * 60)
-    logger.info("🤖 PREMIUM ENGLISH MASTERY BOT - PRODUCTION")
-    logger.info(f"📚 Questions: {TOTAL_QUESTIONS}")
-    logger.info("⚡ FEATURES: Concurrency | Locking | 1-Second Auto-Clear")
-    logger.info("🚀 Running on Render (24/7)")
-    logger.info("🌐 Web server active for health checks")
-    logger.info("=" * 60)
-    logger.info("✅ Bot is starting...")
-    
+def main():
+    """Main function for Render deployment - simplified for compatibility"""
     try:
-        # Start the bot with proper error handling
-        async with app:
-            await app.start()
-            await app.updater.start_polling(
-                drop_pending_updates=True,
-                allowed_updates=["message", "callback_query"]
-            )
-            
-            logger.info("✅ Bot is now running!")
-            
-            # Keep the bot running
-            while True:
-                await asyncio.sleep(3600)
-                logger.info("💓 Bot health check - Still running")
+        # Create the Application
+        application = Application.builder().token(BOT_TOKEN).build()
+        
+        # Add handlers
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("stats", stats_command))
+        application.add_handler(CommandHandler("ping", ping))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CallbackQueryHandler(handle_callback))
+        application.add_error_handler(error_handler)
+        
+        logger.info("=" * 60)
+        logger.info("🤖 PREMIUM ENGLISH MASTERY BOT - PRODUCTION")
+        logger.info(f"📚 Questions: {TOTAL_QUESTIONS}")
+        logger.info("⚡ FEATURES: Concurrency | Locking | 1-Second Auto-Clear")
+        logger.info("🚀 Running on Render (24/7)")
+        logger.info("🌐 Web server active for health checks")
+        logger.info("=" * 60)
+        logger.info("✅ Bot is starting...")
+        
+        # Start the bot using the simpler method
+        application.run_polling(
+            drop_pending_updates=True,
+            allowed_updates=["message", "callback_query"]
+        )
+        
     except Exception as e:
         logger.error(f"❌ Bot error: {e}")
         raise
+
+# ==================== RUN ====================
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
         logger.info("🤖 Bot stopped by user")
     except Exception as e:
         logger.error(f"❌ Bot stopped: {e}")
+        time.sleep(5)
         sys.exit(1)
