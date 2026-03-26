@@ -92,10 +92,10 @@ web_thread.start()
 
 # ==================== CONFIGURATION ====================
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv('TOKEN')
 
 if not BOT_TOKEN:
-    print("❌ BOT_TOKEN not found!")
+    print("❌ TOKEN not found!")
     sys.exit(1)
 
 # Setup minimal logging for speed
@@ -1052,7 +1052,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def main():
     """Main function for Render deployment"""
     app = Application.builder() \
-        .token(BOT_TOKEN) \
+        .token(TOKEN) \
         .concurrent_updates(True) \
         .build()
     
