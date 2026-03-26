@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*
+# -*- coding: utf-8 -*-
 """
 PREMIUM ENGLISH MASTERY TELEGRAM BOT
 PRODUCTION READY - ULTRA FAST - NO LAG - NO FREEZE
@@ -92,20 +92,20 @@ web_thread.start()
 
 # ==================== CONFIGURATION ====================
 
-BOT_TOKEN = os.getenv('TOKEN')
+# Get bot token from environment variable - supports both names for compatibility
+BOT_TOKEN = os.getenv('BOT_TOKEN') or os.getenv('TOKEN')
 
 if not BOT_TOKEN:
-    print("❌ TOKEN not found!")
+    print("❌ BOT_TOKEN not found! Please set the BOT_TOKEN environment variable.")
     sys.exit(1)
 
-# Setup minimal logging for speed
+# Setup logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.WARNING,
+    level=logging.INFO,
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # ==================== COMPLETE 100 QUESTIONS DATABASE ====================
 
@@ -1051,8 +1051,9 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def main():
     """Main function for Render deployment"""
+    # Use BOT_TOKEN (defined earlier) not TOKEN
     app = Application.builder() \
-        .token(TOKEN) \
+        .token(BOT_TOKEN) \
         .concurrent_updates(True) \
         .build()
     
@@ -1071,22 +1072,26 @@ async def main():
     logger.info("🚀 Running on Render (24/7)")
     logger.info("🌐 Web server active for health checks")
     logger.info("=" * 60)
-    logger.info("✅ Bot is running...")
+    logger.info("✅ Bot is starting...")
     
-    # Start the bot with proper error handling
-    async with app:
-        await app.start()
-        await app.updater.start_polling(
-            drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"]
-        )
-        
-        # Keep the bot running
-        while True:
-            await asyncio.sleep(3600)
-            logger.info("💓 Bot health check - Still running")
-
-# ==================== RUN ====================
+    try:
+        # Start the bot with proper error handling
+        async with app:
+            await app.start()
+            await app.updater.start_polling(
+                drop_pending_updates=True,
+                allowed_updates=["message", "callback_query"]
+            )
+            
+            logger.info("✅ Bot is now running!")
+            
+            # Keep the bot running
+            while True:
+                await asyncio.sleep(3600)
+                logger.info("💓 Bot health check - Still running")
+    except Exception as e:
+        logger.error(f"❌ Bot error: {e}")
+        raise
 if __name__ == "__main__":
     try:
         asyncio.run(main())
