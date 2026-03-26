@@ -27,9 +27,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests"""
         self.send_response(200)
-        self.send_header('Content-type', 'text/html')
+        self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
-        self.wfile.write(b"""
+        # Use string and encode to UTF-8 instead of bytes literal
+        html_content = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -66,7 +67,8 @@ class Handler(BaseHTTPRequestHandler):
             </div>
         </body>
         </html>
-        """)
+        """
+        self.wfile.write(html_content.encode('utf-8'))
     
     def do_HEAD(self):
         """Handle HEAD requests"""
