@@ -4,6 +4,7 @@ PREMIUM ENGLISH MASTERY TELEGRAM BOT
 PRODUCTION READY - ULTRA FAST - NO LAG - NO FREEZE
 100 Advanced English Questions with Auto-Clearing Explanations
 Render Deployment Ready - 24/7 Operation
+USING MODERN v20+ TELEGRAM BOT API
 """
 
 # ==================== IMPORTS ====================
@@ -16,7 +17,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Dict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.constants import ParseMode
 from asyncio import Lock
 
@@ -870,6 +871,7 @@ def get_level(percentage: float) -> str:
 # ==================== HANDLERS ====================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Start command handler"""
     user_id = update.effective_user.id
     
     async with session_lock:
@@ -885,12 +887,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "<b>⚡ ULTRA FAST</b>\n"
         "✓ Instant responses | ✓ 1-second auto-clear\n"
         "✓ 24/7 Availability | ✓ Render Deployed\n\n"
-        "<b>🎯 Type /start to begin!</b>",
+        "<b>🎯 Let's begin!</b>",
         parse_mode=ParseMode.HTML
     )
     await send_question(update, context)
 
 async def send_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send the next question"""
     user_id = update.effective_user.id
     
     async with session_lock:
@@ -932,6 +935,7 @@ async def send_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle answer callbacks"""
     query = update.callback_query
     user_id = query.from_user.id
     
@@ -976,20 +980,24 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         async with session_lock:
             session["index"] += 1
         
-        # Send next question without waiting for message deletion
+        # Send next question
         await send_question(update, context)
         
-        # Delete explanation after delay
-        asyncio.create_task(delete_message_after_delay(context, update.effective_chat.id, msg.message_id, 1))
-
-async def delete_message_after_delay(context, chat_id, message_id, delay):
-    await asyncio.sleep(delay)
-    try:
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except:
-        pass
+        # Schedule deletion of explanation
+        async def delete_message():
+            await asyncio.sleep(1)
+            try:
+                await context.bot.delete_message(
+                    chat_id=update.effective_chat.id, 
+                    message_id=msg.message_id
+                )
+            except:
+                pass
+        
+        asyncio.create_task(delete_message())
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show statistics"""
     async with session_lock:
         total_users = len(user_sessions)
     
@@ -1046,35 +1054,36 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Log errors"""
     logger.error(f"Error: {context.error}")
 
 # ==================== MAIN ====================
 
 def main():
-    """Main function for Render deployment - simplified for compatibility"""
+    """Main function using modern v20+ ApplicationBuilder"""
     try:
-        # Create the Application
-        application = Application.builder().token(BOT_TOKEN).build()
+        # Create application using modern builder pattern (NO UPDATER!)
+        app = ApplicationBuilder().token(BOT_TOKEN).build()
         
-        # Add handlers
-        application.add_handler(CommandHandler("start", start))
-        application.add_handler(CommandHandler("stats", stats_command))
-        application.add_handler(CommandHandler("ping", ping))
-        application.add_handler(CommandHandler("help", help_command))
-        application.add_handler(CallbackQueryHandler(handle_callback))
-        application.add_error_handler(error_handler)
+        # Add all handlers
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("stats", stats_command))
+        app.add_handler(CommandHandler("ping", ping))
+        app.add_handler(CommandHandler("help", help_command))
+        app.add_handler(CallbackQueryHandler(handle_callback))
+        app.add_error_handler(error_handler)
         
         logger.info("=" * 60)
         logger.info("🤖 PREMIUM ENGLISH MASTERY BOT - PRODUCTION")
         logger.info(f"📚 Questions: {TOTAL_QUESTIONS}")
-        logger.info("⚡ FEATURES: Concurrency | Locking | 1-Second Auto-Clear")
+        logger.info("⚡ Using modern v20+ ApplicationBuilder")
         logger.info("🚀 Running on Render (24/7)")
         logger.info("🌐 Web server active for health checks")
         logger.info("=" * 60)
         logger.info("✅ Bot is starting...")
         
-        # Start the bot using the simpler method
-        application.run_polling(
+        # Start polling (this runs forever)
+        app.run_polling(
             drop_pending_updates=True,
             allowed_updates=["message", "callback_query"]
         )
