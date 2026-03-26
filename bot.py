@@ -7,7 +7,7 @@ Render Deployment Ready - 24/7 Operation
 USING MODERN v20+ TELEGRAM BOT API
 """
 
-# ==================== IMPORTS ====================
+# ==================== IMPORTS ===================
 import os
 import logging
 import sys
