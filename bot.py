@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*
 """
 PREMIUM ENGLISH MASTERY TELEGRAM BOT
 PRODUCTION READY - ULTRA FAST - NO LAG - NO FREEZE
